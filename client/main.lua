@@ -94,12 +94,13 @@ RegisterNetEvent('qtm:client:openPedMenu', function()
                     local pinInput = lib.inputDialog('Set PIN', {
                         { type = 'password', label = 'Enter your new PIN', required = true }
                     })
-                    
+
                     if pinInput and pinInput[1] then
                         local newPin = pinInput[1]
                         local alert = lib.alertDialog({
                             header = 'Quantum ATM',
-                            content = 'Resetting your pin will result in your old card being invalid and new details for your card will be generated.  \n Are you sure you want to proceed?',
+                            content =
+                            'Resetting your pin will result in your old card being invalid and new details for your card will be generated.  \n Are you sure you want to proceed?',
                             centered = true,
                             cancel = true
                         })
@@ -118,7 +119,8 @@ end)
 
 RegisterNUICallback('getCCData', function(data, cb)
     local ccData = lib.callback.await("qtm:server:awaitccData", false)
-    cb(ccData and { success = true, ccData = ccData } or { success = false, message = "Failed to fetch credit card data." })
+    cb(ccData and { success = true, ccData = ccData } or
+    { success = false, message = "Failed to fetch credit card data." })
 end)
 
 RegisterNUICallback('getBalance', function(data, cb)

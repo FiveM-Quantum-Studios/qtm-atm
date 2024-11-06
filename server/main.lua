@@ -38,7 +38,7 @@ lib.callback.register('qtm:server:awaitHistory', function(source)
     local identifier = qtm.Framework.GetIdentifier(src)
 
     flushUserTransactionsToDatabase(identifier)
-    Wait(100) -- Delay just in case 
+    Wait(100) -- Delay just in case
     local query = [[
         SELECT transaction_date, transaction_type, amount
         FROM qtm_transactions
@@ -84,23 +84,23 @@ local function generateRandomCardNumber()
     for i = 1, 16 do
         cardNum = cardNum .. tostring(math.random(0, 9))
         if i == 4 or i == 8 or i == 12 then
-            cardNum = cardNum .. " " 
+            cardNum = cardNum .. " "
         end
     end
     return cardNum
 end
 
 local function generateRandomExpiryDate()
-    local month = math.random(1, 12)  
-    local year = math.random(25, 30)  
-    
+    local month = math.random(1, 12)
+    local year = math.random(25, 30)
+
     return string.format("%02d/%02d", month, year)
 end
 
 local function generateRandomCVV()
     local cvv = ""
     for i = 1, 3 do
-        cvv = cvv .. tostring(math.random(0, 9)) 
+        cvv = cvv .. tostring(math.random(0, 9))
     end
     return cvv
 end
@@ -124,15 +124,34 @@ end
 RegisterNetEvent('qtm:server:setUserPIN')
 AddEventHandler('qtm:server:setUserPIN', function(pinCode)
     local src = source
-    local identifier = qtm.Framework.GetIdentifier(src)
-    local name = qtm.Framework.GetChar(src).fullname
-
-    local longNum = generateRandomCardNumber()
-    local expiry = generateRandomExpiryDate()
-    local cvv = generateRandomCVV()
+    local playerCoords = GetEntityCoords(GetPlayerPed(src))
+    local isNearLocation = false
+    local requiredDistance = 10.0
     
-    insertCCData(identifier, longNum, name, expiry, cvv, pinCode)
+    for name, location in pairs(Config.BankLocations) do
+        local locationCoords = vector3(location.x, location.y, location.z)
+        local distance = #(playerCoords - locationCoords)
+
+        if distance <= requiredDistance then
+            isNearLocation = true
+            break
+        end
+    end
+
+    if isNearLocation then
+        local identifier = qtm.Framework.GetIdentifier(src)
+        local name = qtm.Framework.GetChar(src).fullname
+
+        local longNum = generateRandomCardNumber()
+        local expiry = generateRandomExpiryDate()
+        local cvv = generateRandomCVV()
+
+        insertCCData(identifier, longNum, name, expiry, cvv, pinCode)
+    else
+        qtm.Anticheat.Ban(source, "Tried to exploit the 'qtm:server:setUserPIN' event")
+    end
 end)
+
 
 
 lib.callback.register('qtm:server:awaitccData', function(source)
@@ -156,7 +175,7 @@ lib.callback.register('qtm:server:awaitccData', function(source)
             correctPin = result[1].correct_pin,
         }
     else
-        if Config.Debug then print("Invalid user data: "..result) end
+        if Config.Debug then print("Invalid user data: " .. result) end
         return false
     end
 end)
@@ -180,7 +199,7 @@ lib.callback.register('qtm:server:awaitDeposit', function(source, depositAmount)
         local newBalance = currentBalance + depositAmount
         return newBalance
     else
-        if Config.Debug then print("Invalid deposit amount: ".. depositAmount) end
+        if Config.Debug then print("Invalid deposit amount: " .. depositAmount) end
         return false
     end
 end)
@@ -188,7 +207,7 @@ end)
 lib.callback.register('qtm:server:awaitWithdrawal', function(source, withdrawalAmount)
     local src = source
     local identifier = qtm.Framework.GetIdentifier(src)
-    
+
     local currentBalance = qtm.Framework.GetBank(src) or 0
 
     if withdrawalAmount and withdrawalAmount > 0 and withdrawalAmount <= currentBalance then
@@ -198,7 +217,8 @@ lib.callback.register('qtm:server:awaitWithdrawal', function(source, withdrawalA
         local newBalance = currentBalance - withdrawalAmount
         return newBalance
     else
-        if Config.Debug then print("Invalid withdrawal amount or insufficient funds. Withdrawal Amount: "..withdrawalAmount.." Current Balance: " .. currentBalance) end
+        if Config.Debug then print("Invalid withdrawal amount or insufficient funds. Withdrawal Amount: " ..
+            withdrawalAmount .. " Current Balance: " .. currentBalance) end
         return false
     end
 end)

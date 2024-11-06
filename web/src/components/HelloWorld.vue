@@ -28,9 +28,11 @@
             :key="n"
             class="w-6 h-6 rounded-full transition-colors duration-200"
             :class="{
-              'bg-[#00F9B9]': n <= pinInput.length,
+              'bg-[#00F9B9]': n <= pinInput.length && !pinError,
+              'bg-red-500': pinError,
               'bg-gray-700': n > pinInput.length,
             }"
+            :style="pinError ? { animation: 'bounce 0.5s' } : {}"
           ></span>
         </div>
 
@@ -44,7 +46,7 @@
           >
             {{ n }}
           </button>
-          
+
           <button
             class="bg-gray-500 text-gray-300 rounded-md p-4 font-bold text-lg"
             @click="clearPin"
@@ -72,7 +74,7 @@
       <!-- Main Content -->
       <div
         v-else
-        class="relative w-[400px] border border-[#00F9B9] bg-black/20 backdrop-blur-2xl px-8 py-10 shadow-2xl ring-1 ring-gray-900/5 sm:mx-auto sm:rounded-3xl sm:px-12"
+        class="relative w-[400px] bg-black/20 backdrop-blur-2xl px-8 py-10 shadow-2xl ring-1 ring-gray-900/5 sm:mx-auto sm:rounded-3xl sm:px-12"
       >
         <div class="mx-auto max-w-md">
           <h1
@@ -99,11 +101,11 @@
                 class="bg-gradient-to-r from-[#00F9B9]/20 to-[#00F9B9]/30 p-5 rounded-xl shadow-md w-full select-none"
               >
                 <div class="flex justify-between items-center mb-4">
-                  <img
-                    src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
-                    alt="Visa Logo"
-                    class="h-8"
-                  />
+                  <div
+                    class="h-8 flex items-center justify-center bg-[#00F9B9] text-black rounded-md px-2"
+                  >
+                    <p class="text-lg font-bold">VSIA</p>
+                  </div>
                   <p class="text-gray-100">Debit Card</p>
                 </div>
                 <p class="text-gray-100 text-xl tracking-wide mb-4">
@@ -130,26 +132,26 @@
                 v-model="amount"
                 type="number"
                 placeholder="Enter amount"
-                class="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00F9B9]"
+                class="w-full px-4 py-3 rounded-lg bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00F9B9]"
               />
 
               <!-- Action Buttons -->
               <div class="flex space-x-4">
                 <button
                   @click="deposit"
-                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
+                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold shadow-lg"
                 >
                   Deposit
                 </button>
                 <button
                   @click="withdraw"
-                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
+                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold shadow-lg"
                 >
                   Withdraw
                 </button>
                 <button
                   @click="showHistory"
-                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
+                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold shadow-lg"
                 >
                   History
                 </button>
@@ -191,7 +193,7 @@
               </div>
               <button
                 @click="goBack"
-                class="mt-6 px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out"
+                class="mt-6 px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out shadow-lg"
               >
                 Back
               </button>
@@ -221,6 +223,7 @@ export default {
         correctPin: "1111",
       },
       pinInput: "",
+      pinError: false,
     };
   },
   methods: {
@@ -233,6 +236,7 @@ export default {
     clearPin() {
       this.pinInput = "";
       this.message = "";
+      this.pinError = false;
       console.log("PIN input cleared"); // Debugging
     },
     submitPin() {
@@ -242,9 +246,10 @@ export default {
         this.fetchBalance();
         this.fetchCCData();
       } else {
-        this.message = "Incorrect PIN. Please try again.";
-        this.clearPin();
-        this.loading = false;
+        this.pinError = true;
+        setTimeout(() => {
+          this.clearPin();
+        }, 1000);
       }
     },
     fetchCCData() {
@@ -447,5 +452,31 @@ export default {
   100% {
     transform: rotate(360deg);
   }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+button {
+  font-family: "Roboto", sans-serif;
+  font-weight: 700;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 249, 185, 0.5);
+}
+
+input {
+  font-family: "Roboto", sans-serif;
+  font-weight: 400;
 }
 </style>
