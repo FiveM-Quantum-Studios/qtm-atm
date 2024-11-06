@@ -21,7 +21,7 @@ local function flushUserTransactionsToDatabase(identifier)
         ]]
 
         for _, transaction in ipairs(transactionCache[identifier]) do
-            MySQL.query.await(insertQuery, {
+            MySQL.prepare.await(insertQuery, {
                 transaction.identifier,
                 transaction.date,
                 transaction.transactionType,
@@ -117,7 +117,7 @@ local function insertCCData(identifier, longNum, name, expiry, cvv, correctPin)
             correct_pin = VALUES(correct_pin)
     ]]
 
-    MySQL.query.await(insertQuery, { identifier, longNum, name, expiry, cvv, correctPin })
+    MySQL.prepare.await(insertQuery, { identifier, longNum, name, expiry, cvv, correctPin })
 end
 
 
