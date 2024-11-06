@@ -1,13 +1,47 @@
+local transactionCache = {}
+
 local function logTransaction(identifier, transactionType, amount)
-
-    local insertQuery = [[
-        INSERT INTO qtm_transactions (identifier, transaction_date, transaction_type, amount)
-        VALUES (?, NOW(), ?, ?)
-    ]]
-
-    MySQL.query.await(insertQuery, { identifier, transactionType, amount })
+    table.insert(transactionCache, {
+        identifier = identifier,
+        transactionType = transactionType,
+        amount = amount,
+        date = os.date("%Y-%m-%d %H:%M:%S")
+    })
 end
 
+local function flushTransactionsToDatabase()
+    if #transactionCache > 0 then
+        local insertQuery = [[
+            INSERT INTO qtm_transactions (identifier, transaction_date, transaction_type, amount)
+            VALUES (?, ?, ?, ?)
+        ]]
+
+        for _, transaction in ipairs(transactionCache) do
+            MySQL.query.await(insertQuery, {
+                transaction.identifier,
+                transaction.date,
+                transaction.transactionType,
+                transaction.amount
+            })
+        end
+
+        transactionCache = {}
+    end
+end
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName == GetCurrentResourceName() then
+        flushTransactionsToDatabase()
+    end
+end)
+
+AddEventHandler('txAdmin:events:scheduledRestart', function(eventData)
+    if eventData.secondsRemaining == 120 then
+        CreateThread(function()
+            flushTransactionsToDatabase()
+        end)
+    end
+end)
 
 local function insertCCData(identifier, longNum, name, expiry, cvv, correctPin)
     local insertQuery = [[
