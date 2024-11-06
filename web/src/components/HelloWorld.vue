@@ -12,187 +12,190 @@
       </div>
     </div>
 
-    <!-- PIN Code Screen -->
-    <div
-      v-if="currentView === 'pin'"
-      class="w-[400px] mx-auto p-8 bg-gray-900/60 rounded-xl shadow-lg text-center text-gray-100"
-    >
-      <h2 class="text-2xl font-bold text-[#00F9B9] mb-6">Enter PIN</h2>
-
-      <!-- Pin Indicator Circles with Debugging -->
-      <div class="flex justify-center space-x-2 mb-6">
-        <span
-          v-for="n in 4"
-          :key="n"
-          class="w-6 h-6 rounded-full transition-colors duration-200"
-          :class="{
-            'bg-[#00F9B9]': n <= pinInput.length,
-            'bg-gray-700': n > pinInput.length,
-          }"
-        ></span>
-      </div>
-
-      <!-- Keypad Grid -->
-      <div class="grid grid-cols-3 gap-4">
-        <button
-          v-for="n in 9"
-          :key="n"
-          class="bg-[#00F9B9] text-black rounded-md p-4 font-bold text-lg"
-          @click="enterPin(n)"
-        >
-          {{ n }}
-        </button>
-        
-        <button
-          class="bg-gray-500 text-gray-300 rounded-md p-4 font-bold text-lg"
-          @click="clearPin"
-        >
-          Clear
-        </button>
-        <button
-          class="bg-[#00F9B9] text-black rounded-md p-4 font-bold text-lg"
-          @click="enterPin(0)"
-        >
-          0
-        </button>
-        <button
-          class="bg-[#00F9B9] text-black rounded-md p-4 font-bold text-lg"
-          @click="submitPin"
-        >
-          Enter
-        </button>
-      </div>
-
-      <!-- Error Message -->
-      <p v-if="message" class="text-red-500 mt-4">{{ message }}</p>
-    </div>
-
     <!-- Main Content -->
-    <div
-      v-else
-      class="relative w-[400px] border border-[#00F9B9] bg-black/20 backdrop-blur-2xl px-8 py-10 shadow-2xl ring-1 ring-gray-900/5 sm:mx-auto sm:rounded-3xl sm:px-12"
-    >
-      <div class="mx-auto max-w-md">
-        <h1
-          v-if="currentView === 'main'"
-          class="text-3xl font-extrabold text-center text-[#00F9B9] mb-8"
-        >
-          Quantum ATM
-        </h1>
+    <div v-else>
+      <!-- PIN Code Screen -->
+      <div
+        v-if="currentView === 'pin'"
+        class="w-[400px] mx-auto p-8 bg-gray-900/60 rounded-xl shadow-lg text-center text-gray-100"
+      >
+        <h2 class="text-2xl font-bold text-[#00F9B9] mb-6">Enter PIN</h2>
 
-        <div class="space-y-6 text-sm text-gray-300 select-none">
-          <!-- Balance Display -->
-          <div
+        <!-- Pin Indicator Circles with Debugging -->
+        <div class="flex justify-center space-x-2 mb-6">
+          <span
+            v-for="n in 4"
+            :key="n"
+            class="w-6 h-6 rounded-full transition-colors duration-200"
+            :class="{
+              'bg-[#00F9B9]': n <= pinInput.length,
+              'bg-gray-700': n > pinInput.length,
+            }"
+          ></span>
+        </div>
+
+        <!-- Keypad Grid -->
+        <div class="grid grid-cols-3 gap-4">
+          <button
+            v-for="n in 9"
+            :key="n"
+            class="bg-[#00F9B9] text-black rounded-md p-4 font-bold text-lg"
+            @click="enterPin(n)"
+          >
+            {{ n }}
+          </button>
+          
+          <button
+            class="bg-gray-500 text-gray-300 rounded-md p-4 font-bold text-lg"
+            @click="clearPin"
+          >
+            Clear
+          </button>
+          <button
+            class="bg-[#00F9B9] text-black rounded-md p-4 font-bold text-lg"
+            @click="enterPin(0)"
+          >
+            0
+          </button>
+          <button
+            class="bg-[#00F9B9] text-black rounded-md p-4 font-bold text-lg"
+            @click="submitPin"
+          >
+            Enter
+          </button>
+        </div>
+
+        <!-- Error Message -->
+        <p v-if="message" class="text-red-500 mt-4">{{ message }}</p>
+      </div>
+
+      <!-- Main Content -->
+      <div
+        v-else
+        class="relative w-[400px] border border-[#00F9B9] bg-black/20 backdrop-blur-2xl px-8 py-10 shadow-2xl ring-1 ring-gray-900/5 sm:mx-auto sm:rounded-3xl sm:px-12"
+      >
+        <div class="mx-auto max-w-md">
+          <h1
             v-if="currentView === 'main'"
-            class="flex flex-col items-center space-y-4"
+            class="text-3xl font-extrabold text-center text-[#00F9B9] mb-8"
           >
+            Quantum ATM
+          </h1>
+
+          <div class="space-y-6 text-sm text-gray-300 select-none">
+            <!-- Balance Display -->
             <div
-              class="bg-gradient-to-r from-[#00F9B9]/20 to-[#00F9B9]/30 p-5 rounded-xl shadow-md w-full text-center"
+              v-if="currentView === 'main'"
+              class="flex flex-col items-center space-y-4"
             >
-              <p class="text-gray-100 text-3xl font-bold">${{ balance }}</p>
-            </div>
-
-            <!-- Card Display -->
-            <div
-              class="bg-gradient-to-r from-[#00F9B9]/20 to-[#00F9B9]/30 p-5 rounded-xl shadow-md w-full select-none"
-            >
-              <div class="flex justify-between items-center mb-4">
-                <img
-                  src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
-                  alt="Visa Logo"
-                  class="h-8"
-                />
-                <p class="text-gray-100">Debit Card</p>
-              </div>
-              <p class="text-gray-100 text-xl tracking-wide mb-4">
-                {{ ccData.longNum }}
-              </p>
-              <div class="flex justify-between items-center select-none">
-                <div>
-                  <p class="text-gray-400 text-xs">Card Holder</p>
-                  <p class="text-gray-100">{{ ccData.name }}</p>
-                </div>
-                <div>
-                  <p class="text-gray-400 text-xs">Expiry</p>
-                  <p class="text-gray-100">{{ ccData.expiry }}</p>
-                </div>
-                <div>
-                  <p class="text-gray-400 text-xs">CVV</p>
-                  <p class="text-gray-100">{{ ccData.cvv }}</p>
-                </div>
-              </div>
-            </div>
-
-            <!-- Amount Input -->
-            <input
-              v-model="amount"
-              type="number"
-              placeholder="Enter amount"
-              class="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00F9B9]"
-            />
-
-            <!-- Action Buttons -->
-            <div class="flex space-x-4">
-              <button
-                @click="deposit"
-                class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
-              >
-                Deposit
-              </button>
-              <button
-                @click="withdraw"
-                class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
-              >
-                Withdraw
-              </button>
-              <button
-                @click="showHistory"
-                class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
-              >
-                History
-              </button>
-            </div>
-            <p v-if="message" class="text-red-500 mt-4">{{ message }}</p>
-          </div>
-          <!-- Transaction History -->
-          <div
-            v-else-if="currentView === 'history'"
-            class="flex flex-col items-center space-y-4 w-full"
-          >
-            <h2 class="text-xl font-bold text-[#00F9B9] mb-4">
-              Transaction History
-            </h2>
-            <div class="w-full max-h-72 overflow-y-auto space-y-2">
               <div
-                v-for="(transaction, index) in history"
-                :key="index"
-                class="bg-gray-800/30 p-4 rounded-lg shadow-md flex justify-between items-center"
+                class="bg-gradient-to-r from-[#00F9B9]/20 to-[#00F9B9]/30 p-5 rounded-xl shadow-md w-full text-center"
               >
-                <div class="text-gray-100">
-                  <p class="text-sm">{{ transaction.date }}</p>
-                  <p class="text-xs text-gray-400">{{ transaction.type }}</p>
-                </div>
-                <p
-                  :class="{
-                    'text-green-400':
-                      transaction.type.toLowerCase() === 'deposit',
-                    'text-red-400':
-                      transaction.type.toLowerCase() === 'withdraw',
-                  }"
-                  class="font-semibold"
-                >
-                  {{
-                    transaction.type.toLowerCase() === "deposit" ? "+" : "-"
-                  }}${{ Math.abs(transaction.amount) }}
-                </p>
+                <p class="text-gray-100 text-3xl font-bold">${{ balance }}</p>
               </div>
+
+              <!-- Card Display -->
+              <div
+                class="bg-gradient-to-r from-[#00F9B9]/20 to-[#00F9B9]/30 p-5 rounded-xl shadow-md w-full select-none"
+              >
+                <div class="flex justify-between items-center mb-4">
+                  <img
+                    src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg"
+                    alt="Visa Logo"
+                    class="h-8"
+                  />
+                  <p class="text-gray-100">Debit Card</p>
+                </div>
+                <p class="text-gray-100 text-xl tracking-wide mb-4">
+                  {{ ccData.longNum }}
+                </p>
+                <div class="flex justify-between items-center select-none">
+                  <div>
+                    <p class="text-gray-400 text-xs">Card Holder</p>
+                    <p class="text-gray-100">{{ ccData.name }}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-400 text-xs">Expiry</p>
+                    <p class="text-gray-100">{{ ccData.expiry }}</p>
+                  </div>
+                  <div>
+                    <p class="text-gray-400 text-xs">CVV</p>
+                    <p class="text-gray-100">{{ ccData.cvv }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Amount Input -->
+              <input
+                v-model="amount"
+                type="number"
+                placeholder="Enter amount"
+                class="w-full px-4 py-3 border border-gray-600 rounded-lg bg-gray-900 text-gray-100 focus:outline-none focus:ring-2 focus:ring-[#00F9B9]"
+              />
+
+              <!-- Action Buttons -->
+              <div class="flex space-x-4">
+                <button
+                  @click="deposit"
+                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
+                >
+                  Deposit
+                </button>
+                <button
+                  @click="withdraw"
+                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
+                >
+                  Withdraw
+                </button>
+                <button
+                  @click="showHistory"
+                  class="px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out font-extrabold"
+                >
+                  History
+                </button>
+              </div>
+              <p v-if="message" class="text-red-500 mt-4">{{ message }}</p>
             </div>
-            <button
-              @click="goBack"
-              class="mt-6 px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out"
+            <!-- Transaction History -->
+            <div
+              v-else-if="currentView === 'history'"
+              class="flex flex-col items-center space-y-4 w-full"
             >
-              Back
-            </button>
+              <h2 class="text-xl font-bold text-[#00F9B9] mb-4">
+                Transaction History
+              </h2>
+              <div class="w-full max-h-72 overflow-y-auto space-y-2">
+                <div
+                  v-for="(transaction, index) in history"
+                  :key="index"
+                  class="bg-gray-800/30 p-4 rounded-lg shadow-md flex justify-between items-center"
+                >
+                  <div class="text-gray-100">
+                    <p class="text-sm">{{ transaction.date }}</p>
+                    <p class="text-xs text-gray-400">{{ transaction.type }}</p>
+                  </div>
+                  <p
+                    :class="{
+                      'text-green-400':
+                        transaction.type.toLowerCase() === 'deposit',
+                      'text-red-400':
+                        transaction.type.toLowerCase() === 'withdraw',
+                    }"
+                    class="font-semibold"
+                  >
+                    {{
+                      transaction.type.toLowerCase() === "deposit" ? "+" : "-"
+                    }}${{ Math.abs(transaction.amount) }}
+                  </p>
+                </div>
+              </div>
+              <button
+                @click="goBack"
+                class="mt-6 px-6 py-3 bg-[#00F9B9] text-black rounded-lg hover:bg-[#00d9a9] transform hover:scale-105 transition ease-in-out"
+              >
+                Back
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -287,6 +290,7 @@ export default {
         });
     },
     deposit() {
+      this.resetMessage();
       if (this.amount > 0) {
         this.loading = true;
         fetch("https://your_resource_name/deposit", {
@@ -314,6 +318,7 @@ export default {
       this.amount = "";
     },
     withdraw() {
+      this.resetMessage();
       if (this.amount > 0) {
         this.loading = true;
         fetch("https://your_resource_name/withdraw", {
@@ -341,6 +346,7 @@ export default {
       this.amount = "";
     },
     showHistory() {
+      this.resetMessage();
       this.loading = true;
       fetch("https://your_resource_name/history", {
         method: "GET",
@@ -383,6 +389,9 @@ export default {
     goBack() {
       this.currentView = "main";
     },
+    resetMessage() {
+      this.message = "";
+    },
   },
 };
 </script>
@@ -400,6 +409,7 @@ export default {
   justify-content: center;
   align-items: center;
   border-radius: 10px;
+  z-index: 50;
 }
 
 .loading-animation {
