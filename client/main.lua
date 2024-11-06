@@ -72,6 +72,50 @@ for name, location in pairs(Config.BankLocations) do
     })
 end
 
+RegisterNetEvent('qtm:client:openPedMenu', function()
+    lib.registerContext({
+        id = 'ped_menu',
+        title = 'ATM Menu',
+        options = {
+            {
+                title = 'Open ATM',
+                description = 'Access your bank account.',
+                icon = 'fa-solid fa-university',
+                onSelect = function()
+                    SetNuiFocus(true, true)
+                    SendNUIMessage({ openNUI = true })
+                end
+            },
+            {
+                title = 'Set PIN',
+                description = 'Enter a new PIN for your account.',
+                icon = 'fa-solid fa-key',
+                onSelect = function()
+                    local pinInput = lib.inputDialog('Set PIN', {
+                        { type = 'password', label = 'Enter your new PIN', required = true }
+                    })
+                    
+                    if pinInput and pinInput[1] then
+                        local newPin = pinInput[1]
+                        local alert = lib.alertDialog({
+                            header = 'Quantum ATM',
+                            content = 'Resetting your pin will result in your old card being invalid and new details for your card will be generated.  \n Are you sure you want to proceed?',
+                            centered = true,
+                            cancel = true
+                        })
+                        if alert == 'confirm' then
+                            TriggerServerEvent('qtm:server:setUserPIN', newPin)
+                        end
+                    end
+                end
+            }
+        }
+    })
+
+    lib.showContext('ped_menu')
+end)
+
+
 RegisterNUICallback('getCCData', function(data, cb)
     local ccData = lib.callback.await("qtm:server:awaitccData", false)
     cb(ccData and { success = true, ccData = ccData } or { success = false, message = "Failed to fetch credit card data." })

@@ -38,7 +38,7 @@ lib.callback.register('qtm:server:awaitHistory', function(source)
     local identifier = qtm.Framework.GetIdentifier(src)
 
     flushUserTransactionsToDatabase(identifier)
-    Wait(100) -- Delay just in case
+    Wait(100) -- Delay just in case 
     local query = [[
         SELECT transaction_date, transaction_type, amount
         FROM qtm_transactions
@@ -71,6 +71,40 @@ AddEventHandler('onResourceStop', function(resourceName)
     end
 end)
 
+AddEventHandler('txAdmin:events:scheduledRestart', function(eventData)
+    if eventData.secondsRemaining == 120 then
+        for identifier, _ in pairs(transactionCache) do
+            flushUserTransactionsToDatabase(identifier)
+        end
+    end
+end)
+
+local function generateRandomCardNumber()
+    local cardNum = ""
+    for i = 1, 16 do
+        cardNum = cardNum .. tostring(math.random(0, 9))
+        if i == 4 or i == 8 or i == 12 then
+            cardNum = cardNum .. " " 
+        end
+    end
+    return cardNum
+end
+
+local function generateRandomExpiryDate()
+    local month = math.random(1, 12)  
+    local year = math.random(25, 30)  
+    
+    return string.format("%02d/%02d", month, year)
+end
+
+local function generateRandomCVV()
+    local cvv = ""
+    for i = 1, 3 do
+        cvv = cvv .. tostring(math.random(0, 9)) 
+    end
+    return cvv
+end
+
 local function insertCCData(identifier, longNum, name, expiry, cvv, correctPin)
     local insertQuery = [[
         INSERT INTO qtm_card_details (identifier, long_num, name, expiry, cvv, correct_pin)
@@ -85,6 +119,20 @@ local function insertCCData(identifier, longNum, name, expiry, cvv, correctPin)
 
     MySQL.query.await(insertQuery, { identifier, longNum, name, expiry, cvv, correctPin })
 end
+
+
+RegisterNetEvent('qtm:server:setUserPIN')
+AddEventHandler('qtm:server:setUserPIN', function(pinCode)
+    local src = source
+    local identifier = qtm.Framework.GetIdentifier(src)
+    local name = qtm.Framework.GetChar(src).fullname
+
+    local longNum = generateRandomCardNumber()
+    local expiry = generateRandomExpiryDate()
+    local cvv = generateRandomCVV()
+    
+    insertCCData(identifier, longNum, name, expiry, cvv, pinCode)
+end)
 
 
 lib.callback.register('qtm:server:awaitccData', function(source)
