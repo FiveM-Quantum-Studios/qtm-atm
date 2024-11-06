@@ -1,7 +1,11 @@
 local transactionCache = {}
 
-local function logTransaction(identifier, transactionType, amount)
-    table.insert(transactionCache, {
+local function cacheTransaction(identifier, transactionType, amount)
+    if not transactionCache[identifier] then
+        transactionCache[identifier] = {}
+    end
+
+    table.insert(transactionCache[identifier], {
         identifier = identifier,
         transactionType = transactionType,
         amount = amount,
@@ -9,14 +13,14 @@ local function logTransaction(identifier, transactionType, amount)
     })
 end
 
-local function flushTransactionsToDatabase()
-    if #transactionCache > 0 then
+local function flushUserTransactionsToDatabase(identifier)
+    if transactionCache[identifier] and #transactionCache[identifier] > 0 then
         local insertQuery = [[
             INSERT INTO qtm_transactions (identifier, transaction_date, transaction_type, amount)
             VALUES (?, ?, ?, ?)
         ]]
 
-        for _, transaction in ipairs(transactionCache) do
+        for _, transaction in ipairs(transactionCache[identifier]) do
             MySQL.query.await(insertQuery, {
                 transaction.identifier,
                 transaction.date,
@@ -25,43 +29,16 @@ local function flushTransactionsToDatabase()
             })
         end
 
-        transactionCache = {}
+        transactionCache[identifier] = nil
     end
 end
-
-AddEventHandler('onResourceStop', function(resourceName)
-    if resourceName == GetCurrentResourceName() then
-        flushTransactionsToDatabase()
-    end
-end)
-
-AddEventHandler('txAdmin:events:scheduledRestart', function(eventData)
-    if eventData.secondsRemaining == 120 then
-        CreateThread(function()
-            flushTransactionsToDatabase()
-        end)
-    end
-end)
-
-local function insertCCData(identifier, longNum, name, expiry, cvv, correctPin)
-    local insertQuery = [[
-        INSERT INTO qtm_card_details (identifier, long_num, name, expiry, cvv, correct_pin)
-        VALUES (?, ?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE
-            long_num = VALUES(long_num),
-            name = VALUES(name),
-            expiry = VALUES(expiry),
-            cvv = VALUES(cvv),
-            correct_pin = VALUES(correct_pin)
-    ]]
-
-    MySQL.query.await(insertQuery, { identifier, longNum, name, expiry, cvv, correctPin })
-end
-
 
 lib.callback.register('qtm:server:awaitHistory', function(source)
     local src = source
     local identifier = qtm.Framework.GetIdentifier(src)
+
+    flushUserTransactionsToDatabase(identifier)
+    Wait(100) -- Delay just in case
     local query = [[
         SELECT transaction_date, transaction_type, amount
         FROM qtm_transactions
@@ -84,6 +61,30 @@ lib.callback.register('qtm:server:awaitHistory', function(source)
 
     return history
 end)
+
+
+AddEventHandler('onResourceStop', function(resourceName)
+    if resourceName == GetCurrentResourceName() then
+        for identifier, _ in pairs(transactionCache) do
+            flushUserTransactionsToDatabase(identifier)
+        end
+    end
+end)
+
+local function insertCCData(identifier, longNum, name, expiry, cvv, correctPin)
+    local insertQuery = [[
+        INSERT INTO qtm_card_details (identifier, long_num, name, expiry, cvv, correct_pin)
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON DUPLICATE KEY UPDATE
+            long_num = VALUES(long_num),
+            name = VALUES(name),
+            expiry = VALUES(expiry),
+            cvv = VALUES(cvv),
+            correct_pin = VALUES(correct_pin)
+    ]]
+
+    MySQL.query.await(insertQuery, { identifier, longNum, name, expiry, cvv, correctPin })
+end
 
 
 lib.callback.register('qtm:server:awaitccData', function(source)
@@ -125,7 +126,7 @@ lib.callback.register('qtm:server:awaitDeposit', function(source, depositAmount)
 
     if depositAmount and depositAmount > 0 then
         qtm.Framework.AddMoney(src, depositAmount, "bank")
-        logTransaction(identifier, "Deposit", depositAmount)  
+        cacheTransaction(identifier, "Deposit", depositAmount)
 
         local currentBalance = qtm.Framework.GetBank(src) or 0
         local newBalance = currentBalance + depositAmount
@@ -144,7 +145,8 @@ lib.callback.register('qtm:server:awaitWithdrawal', function(source, withdrawalA
 
     if withdrawalAmount and withdrawalAmount > 0 and withdrawalAmount <= currentBalance then
         qtm.Framework.RemoveMoney(src, withdrawalAmount, "bank")
-        logTransaction(identifier, "Withdraw", withdrawalAmount)  
+        cacheTransaction(identifier, "Withdraw", withdrawalAmount)
+
         local newBalance = currentBalance - withdrawalAmount
         return newBalance
     else
