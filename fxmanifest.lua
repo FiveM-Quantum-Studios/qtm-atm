@@ -1,28 +1,27 @@
--- Set the FX version and game type
 fx_version "cerulean"
 game "gta5"
 
--- Resource metadata
-author "loljoshie"
-description "Vite, Vue & TailwindCSS boilerplate made for FiveM."
+author "Tizas"
+description "A simple & optimised solution for banking."
 version "1.0"
+lua54 'yes'
 
--- Define client-side scripts
 client_scripts {
     "client/main.lua"
 }
 
--- Define server-side scripts
 server_scripts {
-    "server/main.lua"
+    "server/main.lua",
+    '@oxmysql/lib/MySQL.lua'
 }
 
--- Define scripts shared between client and server
 shared_scripts {
-    "config.lua"
+    '@ox_lib/init.lua',
+    '@qtm-lib/imports.lua',
+    "shared/config.lua",
+    "shared/locales.lua",
 }
 
--- Define files that should be included in the resource
 files {
     "html/*",
     "html/assets/*",
@@ -30,5 +29,4 @@ files {
     "html/index.html"
 }
 
--- Set the UI page to be displayed
 ui_page "html/index.html"

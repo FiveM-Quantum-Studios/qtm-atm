@@ -1,24 +1,39 @@
 <!DOCTYPE html>
-<!-- Set your theme preference for components themes "light" or "dark" -->
 <html class="dark" lang="en">
   <head>
-    <!-- Set the character encoding to UTF-8 -->
     <meta charset="UTF-8" />
-    
-    <!-- Set the icon that appears in the browser's tab -->
-    <link rel="icon" href="" />
-    
-    <!-- Set the viewport of the document to the width of the device and initial zoom level to 1.0 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
-    <!-- Set the title of the document that appears in the browser's tab -->
-    <title>lj-boilerplate - Vite, Vue & TailwindCSS boilerplate made for FiveM.</title>
+    <link rel="icon" href="" />
+    <title>FiveM Vite, Vue & TailwindCSS NUI Menu</title>
   </head>
   <body>
-    <!-- Create a div with the ID of "app". Our Vue app will be mounted to this div -->
     <div id="app"></div>
-    
-    <!-- Import the JavaScript file that initializes our Vue app -->
+
+    <!-- Buttons for testing NUI messages -->
+    <div class="test-buttons" style="position: fixed; top: 10px; left: 10px; z-index: 1000;">
+      <button onclick="simulateOpenATM()">Open ATM</button>
+      <button onclick="simulateCloseATM()">Close ATM</button>
+    </div>
+
     <script type="module" src="/src/main.js"></script>
+
+    <script>
+      window.addEventListener("message", (event) => {
+        if (event.data.type === "openATM") {
+          window.dispatchEvent(new CustomEvent("openATMMenu"));
+        }
+        if (event.data.type === "closeATM") {
+          window.dispatchEvent(new CustomEvent("closeATMMenu"));
+        }
+      });
+
+      function simulateOpenATM() {
+        window.dispatchEvent(new CustomEvent("openATMMenu"));
+      }
+
+      function simulateCloseATM() {
+        window.dispatchEvent(new CustomEvent("closeATMMenu"));
+      }
+    </script>
   </body>
 </html>

@@ -1,6 +1,7 @@
 <template>
   <div
-    class="relative flex min-h-screen flex-col justify-center overflow-hidden py-6 sm:py-12 px-8 bg-gradient-to-r from-[#0d0d0d] to-[#1a1a1a] select-none"
+    v-if="showATM"
+    class="relative flex flex-col justify-center overflow-hidden py-6 sm:py-12 px-8 select-none"
   >
     <!-- Loading Square -->
     <div v-if="loading" class="loading-square">
@@ -17,9 +18,19 @@
       <!-- PIN Code Screen -->
       <div
         v-if="currentView === 'pin'"
-        class="w-[400px] mx-auto p-8 bg-gray-900/60 rounded-xl shadow-lg text-center text-gray-100"
+        class="relative w-[400px] mx-auto p-8 bg-gray-900/60 rounded-xl shadow-lg text-center text-gray-100"
       >
         <h2 class="text-2xl font-bold text-[#00F9B9] mb-6">Enter PIN</h2>
+
+        <!-- Close Button -->
+        <button
+          @click="closeATM"
+          class="absolute top-4 right-4 bg-[#00F9B9] text-black rounded-full p-1 hover:bg-[#00d9a9] transition-colors"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
 
         <!-- Pin Indicator Circles with Debugging -->
         <div class="flex justify-center space-x-2 mb-6">
@@ -83,6 +94,16 @@
           >
             Quantum ATM
           </h1>
+
+          <!-- Close Button -->
+          <button
+            @click="closeATM"
+            class="absolute top-4 right-4 bg-[#00F9B9] text-black rounded-full p-1 hover:bg-[#00d9a9] transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
 
           <div class="space-y-6 text-sm text-gray-300 select-none">
             <!-- Balance Display -->
@@ -209,6 +230,7 @@
 export default {
   data() {
     return {
+      showATM: false,
       balance: 0,
       amount: "",
       message: "",
@@ -253,7 +275,7 @@ export default {
       }
     },
     fetchCCData() {
-      fetch("https://your_resource_name/getCCData", {
+      fetch("https://qtm-atm/getCCData", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -273,7 +295,7 @@ export default {
     },
     fetchBalance() {
       this.loading = true;
-      fetch("https://your_resource_name/getBalance", {
+      fetch("https://qtm-atm/getBalance", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -298,7 +320,7 @@ export default {
       this.resetMessage();
       if (this.amount > 0) {
         this.loading = true;
-        fetch("https://your_resource_name/deposit", {
+        fetch("https://qtm-atm/deposit", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -326,7 +348,7 @@ export default {
       this.resetMessage();
       if (this.amount > 0) {
         this.loading = true;
-        fetch("https://your_resource_name/withdraw", {
+        fetch("https://qtm-atm/withdraw", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -353,7 +375,7 @@ export default {
     showHistory() {
       this.resetMessage();
       this.loading = true;
-      fetch("https://your_resource_name/history", {
+      fetch("https://qtm-atm/history", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -397,6 +419,29 @@ export default {
     resetMessage() {
       this.message = "";
     },
+    closeATM() {
+      this.showATM = false;
+      this.resetATM();
+      window.dispatchEvent(new CustomEvent("closeATMMenu"));
+    },
+    openATM() {
+      this.showATM = true;
+    },
+    resetATM() {
+      this.currentView = "pin";
+      this.pinInput = "";
+      this.pinError = false;
+      this.message = "";
+      this.amount = "";
+    },
+  },
+  mounted() {
+    window.addEventListener("openATMMenu", this.openATM);
+    window.addEventListener("closeATMMenu", this.closeATM);
+  },
+  beforeDestroy() {
+    window.removeEventListener("openATMMenu", this.openATM);
+    window.removeEventListener("closeATMMenu", this.closeATM);
   },
 };
 </script>
